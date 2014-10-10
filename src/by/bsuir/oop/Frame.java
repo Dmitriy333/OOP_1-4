@@ -8,12 +8,7 @@ import javax.swing.JFrame;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
@@ -22,13 +17,12 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
-import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -52,8 +46,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 
 import by.bsuir.filefilter.Filter;
-import java.awt.event.WindowStateListener;
-import java.awt.event.WindowEvent;
+import by.bsuir.polyline.Polyline;
+
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
@@ -64,9 +58,9 @@ public class Frame {
 	private String currentFigure = "line";
 	private boolean pressed = false;
 	private List<Shape> shapes = new ArrayList<Shape>();
-	private Map<String, Shape> choiceMap = new HashMap<String, Shape>();
 	private JPanel drawPanel;
 	private JComboBox<Object> comboBox;
+	private List<Point> points = new ArrayList<Point>();
 
 	/**
 	 * Launch the application.
@@ -243,8 +237,13 @@ public class Frame {
 					@Override
 					public void mousePressed(MouseEvent e) {
 						firstPoint = e.getPoint();
+						if(points == null){
+							points = new ArrayList<Point>();
+						}
+						points.add(firstPoint);
 						pressed = true;
 					}
+					@SuppressWarnings("unchecked")
 					@Override
 					public void mouseReleased(MouseEvent e) {
 						Class<Shape> clazz;
@@ -256,18 +255,46 @@ public class Frame {
 							String firstWord = currentFigure.replaceAll("\\..*","");
 							currentFigure = firstWord;
 								try{
-									clazz = (Class<Shape>) Class.forName(currentFigure);
-									ctor = clazz.getConstructor(Point.class, Point.class);
-									object = ctor.newInstance(firstPoint, secondPoint);
-									figure = (Shape)object;
-									shapes.add(figure);
-									repaintPanel(drawPanel);
+									if(currentFigure.equals("Polyline")){
+										clazz = (Class<Shape>) Class.forName(currentFigure);
+										ctor = clazz.getConstructor(List.class);
+										if(SwingUtilities.isRightMouseButton(e)){
+											pressed = false;
+											//Polyline polyline = new Polyline(points);
+											object = ctor.newInstance(points);
+											figure = (Shape)object;
+											figure.addPoints(points);
+											shapes.add(figure);
+											points = null;
+										}else{
+											if(points == null){
+												points = new ArrayList<Point>();
+											}
+											points.add(secondPoint);
+											object = ctor.newInstance(points);
+											figure = (Shape)object;
+											figure.addPoints(points);
+											//прорисовываем в промежуточных значениях
+											figure.draw(drawPanel.getGraphics());
+											pressed = true;
+										}
+									}else{
+										clazz = (Class<Shape>) Class.forName(currentFigure);
+										ctor = clazz.getConstructor(List.class);
+										points.add(secondPoint);
+										object = ctor.newInstance(points);
+										figure = (Shape)object;
+										figure.addPoints(points);
+										points = null;
+										pressed = false;
+										shapes.add(figure);
+										repaintPanel(drawPanel);
+									}
 								}catch(Exception e1){
 									JOptionPane.showMessageDialog(null, "Cannot draw such figure",
 											"Error", 1);
 								}
 								
-								pressed = false;
 						}
 					}
 				});
@@ -294,6 +321,7 @@ public class Frame {
 		    	 figures.add( fList[i].getName());
 		     }
 		}
+		figures.add("Polyline.jar");
 		comboBox.setModel(new DefaultComboBoxModel<Object>(figures.toArray()));
 		return figures.get(0);
 	}
