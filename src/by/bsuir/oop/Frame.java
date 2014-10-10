@@ -5,26 +5,22 @@ import java.awt.Point;
 
 import javax.swing.JFrame;
 
-
-
-
-
-
-
-//import by.bsuir.shape.Ellipse;
-import by.bsuir.shape.Shape;
-
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import java.awt.BorderLayout;
@@ -40,8 +36,26 @@ import java.lang.reflect.Constructor;
 
 import javax.swing.UIManager;
 
+import simple_figure.Shape;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.border.LineBorder;
+
+import java.awt.Color;
+
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
+
+import by.bsuir.filefilter.Filter;
+import java.awt.event.WindowStateListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class Frame {
 
@@ -51,7 +65,8 @@ public class Frame {
 	private boolean pressed = false;
 	private List<Shape> shapes = new ArrayList<Shape>();
 	private Map<String, Shape> choiceMap = new HashMap<String, Shape>();
-	private JPanel panel;
+	private JPanel drawPanel;
+	private JComboBox<Object> comboBox;
 
 	/**
 	 * Launch the application.
@@ -87,77 +102,13 @@ public class Frame {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.addMouseListener(new MouseAdapter() {
+		frame.addComponentListener(new ComponentAdapter() {
 			@Override
-			public void mousePressed(MouseEvent e) {
-				firstPoint = e.getPoint();
-				pressed = true;
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				Class<Shape> clazz;
-				Constructor<?> ctor;
-				Object object;
-				secondPoint = e.getPoint();
-				if (pressed) {
-					Shape figure = null;
-					switch (currentFigure) {
-					case "line":
-						try{
-							clazz = (Class<Shape>) Class.forName("by.bsuir.line.Line");
-							ctor = clazz.getConstructor(Point.class, Point.class);
-							object = ctor.newInstance(firstPoint, secondPoint);
-							figure = (Shape)object;
-						}catch(Exception e1){
-							e1.printStackTrace();
-						}
-						break;
-					case "rectangle":
-						try{
-							clazz = (Class<Shape>) Class.forName("by.bsuir.rectangle.Rectangle");
-							ctor = clazz.getConstructor(Point.class, Point.class);
-							object = ctor.newInstance(firstPoint, secondPoint);
-							figure = (Shape)object;
-						}catch(Exception e1){
-							e1.printStackTrace();
-						}
-						//figure = new Rectangle(firstPoint, secondPoint);
-						break;
-					case "ellipse":
-						//figure = new Ellipse(firstPoint, secondPoint);
-						try{
-							clazz = (Class<Shape>) Class.forName("by.bsuir.ellipse.Ellipse");
-							ctor = clazz.getConstructor(Point.class, Point.class);
-							object = ctor.newInstance(firstPoint, secondPoint);
-							figure = (Shape)object;
-						}catch(Exception e1){
-							e1.printStackTrace();
-						}
-					
-						//Object object = createInstance("by.bsuir.shape.Ellipse","MyAttributeValue");
-//						try {
-//							figure = (Shape) Class.forName("by.bsuir.shape.Ellipse").newInstance();
-//						} catch (InstantiationException e1) {
-//							// TODO Auto-generated catch block
-//							e1.printStackTrace();
-//						} catch (IllegalAccessException e1) {
-//							// TODO Auto-generated catch block
-//							e1.printStackTrace();
-//						} catch (ClassNotFoundException e1) {
-//							// TODO Auto-generated catch block
-//							e1.printStackTrace();
-//						}
-						break;
-					}
-					shapes.add(figure);
-					repaintPanel(panel);
-					pressed = false;
-				}
+			public void componentResized(ComponentEvent e) {
+				//repaintPanel(drawPanel);
 			}
 		});
-
-		frame.setBounds(100, 100, 632, 431);
+		frame.setBounds(100, 100, 774, 503);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
@@ -198,7 +149,7 @@ public class Frame {
 		mntmNew.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				shapes = new ArrayList<Shape>();
-				panel.repaint();
+				drawPanel.repaint();
 			}
 		});
 		mnFile.add(mntmNew);
@@ -233,7 +184,6 @@ public class Frame {
 							}
 							oin.close();
 						} catch (ClassNotFoundException e1) {
-							// TODO Auto-generated catch block
 							//e1.printStackTrace();
 						}
 					} catch (IOException e1) {
@@ -241,7 +191,7 @@ public class Frame {
 					}
 				}
 				for (Shape shape : shapes) {
-					shape.draw(panel.getGraphics());
+					shape.draw(drawPanel.getGraphics());
 				}
 			}
 		});
@@ -257,7 +207,7 @@ public class Frame {
 		mntmLine.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				currentFigure = "line";
+				currentFigure = "Line";
 			}
 		});
 		mnFigures.add(mntmLine);
@@ -266,7 +216,7 @@ public class Frame {
 		mntmRectangle.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				currentFigure = "rectangle";
+				currentFigure = "Rectangle";
 			}
 		});
 		mnFigures.add(mntmRectangle);
@@ -275,22 +225,104 @@ public class Frame {
 		mntmEllipse.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				currentFigure = "ellipse";
+				currentFigure = "Ellipse";
 			}
 		});
 		mnFigures.add(mntmEllipse);
-		frame.getContentPane().setLayout(new BorderLayout(0, 0));
-
-		panel = new JPanel();
-		frame.getContentPane().add(panel, BorderLayout.CENTER);
+		
+		JPanel panel = new JPanel();
+		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
+		
+		comboBox = new JComboBox<Object>();
+		comboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				currentFigure = (String)comboBox.getSelectedItem();
+			}
+		});
+		currentFigure = initComboBox(comboBox, "Jar files");
+		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 556, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+					.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 117, GroupLayout.PREFERRED_SIZE)
+					.addGap(30))
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addGroup(groupLayout.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(panel, GroupLayout.PREFERRED_SIZE, 356, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(26)
+							.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap(76, Short.MAX_VALUE))
+		);
+				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+		
+				drawPanel = new JPanel();
+				panel.add(drawPanel);
+				drawPanel.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mousePressed(MouseEvent e) {
+						firstPoint = e.getPoint();
+						pressed = true;
+					}
+					@Override
+					public void mouseReleased(MouseEvent e) {
+						Class<Shape> clazz;
+						Constructor<?> ctor;
+						Object object;
+						secondPoint = e.getPoint();
+						if (pressed) {
+							Shape figure = null;
+							String firstWord = currentFigure.replaceAll("\\..*","");
+							currentFigure = firstWord;
+								try{
+									clazz = (Class<Shape>) Class.forName(currentFigure);
+									ctor = clazz.getConstructor(Point.class, Point.class);
+									object = ctor.newInstance(firstPoint, secondPoint);
+									figure = (Shape)object;
+									shapes.add(figure);
+									repaintPanel(drawPanel);
+								}catch(Exception e1){
+									JOptionPane.showMessageDialog(null, "Cannot draw such figure",
+											"Error", 1);
+								}
+								
+								pressed = false;
+						}
+					}
+				});
+		frame.getContentPane().setLayout(groupLayout);
 	}
 
-	public void repaintPanel(JPanel panel) {
+	private void repaintPanel(JPanel panel) {
 		panel.getGraphics()
 				.clearRect(0, 0, panel.getWidth(), panel.getHeight());
-		// frame.getGraphics().draw
 		for (Shape shape : shapes) {
-			shape.draw(frame.getGraphics());
+			shape.draw(panel.getGraphics());
 		}
 	}
+	
+	private String initComboBox(JComboBox<Object> comboBox, String pathName){
+		File []fList;        
+		File F = new File(pathName);
+		Filter filter = new Filter();        
+		fList = F.listFiles();
+		List<String> figures = new ArrayList<>();
+		for(int i=0; i<fList.length; i++)           
+		{
+		     if(filter.accept(fList[i])){
+		    	 figures.add( fList[i].getName());
+		     }
+		}
+		comboBox.setModel(new DefaultComboBoxModel<Object>(figures.toArray()));
+		return figures.get(0);
+	}
+	
 }
