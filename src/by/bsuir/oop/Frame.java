@@ -46,7 +46,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 
 import by.bsuir.filefilter.Filter;
-import by.bsuir.polyline.Polyline;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -150,6 +149,7 @@ public class Frame {
 			public void actionPerformed(ActionEvent e) {
 				shapes = new ArrayList<Shape>();
 				drawPanel.repaint();
+				points = null;
 			}
 		});
 		mnFile.add(mntmNew);
@@ -178,9 +178,7 @@ public class Frame {
 									break;
 								}
 								// read from the object stream,
-
 								// which wraps the file stream
-
 							}
 							oin.close();
 						} catch (ClassNotFoundException e1) {
@@ -206,7 +204,7 @@ public class Frame {
 				currentFigure = (String)comboBox.getSelectedItem();
 			}
 		});
-		currentFigure = initComboBox(comboBox, "Jar files");
+		currentFigure = initComboBox(comboBox, "new Jar files");
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -240,30 +238,33 @@ public class Frame {
 						if(points == null){
 							points = new ArrayList<Point>();
 						}
-						points.add(firstPoint);
+						if(!currentFigure.equals("Polyline")){
+							points.add(firstPoint);
+						}
 						pressed = true;
 					}
 					@SuppressWarnings("unchecked")
 					@Override
 					public void mouseReleased(MouseEvent e) {
 						Class<Shape> clazz;
-						Constructor<?> ctor;
+						Constructor<Shape> ctor;
 						Object object;
 						secondPoint = e.getPoint();
 						if (pressed) {
+							
 							Shape figure = null;
 							String firstWord = currentFigure.replaceAll("\\..*","");
 							currentFigure = firstWord;
 								try{
+									clazz = (Class<Shape>) Class.forName(currentFigure);
+									ctor = clazz.getConstructor(List.class);
 									if(currentFigure.equals("Polyline")){
-										clazz = (Class<Shape>) Class.forName(currentFigure);
-										ctor = clazz.getConstructor(List.class);
 										if(SwingUtilities.isRightMouseButton(e)){
 											pressed = false;
-											//Polyline polyline = new Polyline(points);
 											object = ctor.newInstance(points);
 											figure = (Shape)object;
 											figure.addPoints(points);
+											//add last variant of polyline in collection of shapes
 											shapes.add(figure);
 											points = null;
 										}else{
@@ -274,25 +275,25 @@ public class Frame {
 											object = ctor.newInstance(points);
 											figure = (Shape)object;
 											figure.addPoints(points);
-											//прорисовываем в промежуточных значениях
+											//draw polyline in intermediate values 
 											figure.draw(drawPanel.getGraphics());
 											pressed = true;
 										}
 									}else{
-										clazz = (Class<Shape>) Class.forName(currentFigure);
-										ctor = clazz.getConstructor(List.class);
 										points.add(secondPoint);
 										object = ctor.newInstance(points);
 										figure = (Shape)object;
 										figure.addPoints(points);
+										shapes.add(figure);
+										figure.draw(drawPanel.getGraphics());
+										//repaintPanel(drawPanel);
 										points = null;
 										pressed = false;
-										shapes.add(figure);
-										repaintPanel(drawPanel);
 									}
 								}catch(Exception e1){
 									JOptionPane.showMessageDialog(null, "Cannot draw such figure",
 											"Error", 1);
+									points = null;
 								}
 								
 						}
@@ -321,7 +322,6 @@ public class Frame {
 		    	 figures.add( fList[i].getName());
 		     }
 		}
-		figures.add("Polyline.jar");
 		comboBox.setModel(new DefaultComboBoxModel<Object>(figures.toArray()));
 		return figures.get(0);
 	}
