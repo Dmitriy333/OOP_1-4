@@ -112,6 +112,12 @@ public class Frame {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
+		menuBar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+			}
+		});
 		frame.setJMenuBar(menuBar);
 
 		JMenu mnFile = new JMenu("File");
@@ -196,39 +202,6 @@ public class Frame {
 			}
 		});
 		mnFile.add(mntmOpen);
-
-		JMenu mnOptions = new JMenu("Options");
-		menuBar.add(mnOptions);
-
-		JMenu mnFigures = new JMenu("Figures");
-		mnOptions.add(mnFigures);
-
-		JMenuItem mntmLine = new JMenuItem("Line");
-		mntmLine.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				currentFigure = "Line";
-			}
-		});
-		mnFigures.add(mntmLine);
-
-		JMenuItem mntmRectangle = new JMenuItem("Rectangle");
-		mntmRectangle.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				currentFigure = "Rectangle";
-			}
-		});
-		mnFigures.add(mntmRectangle);
-
-		JMenuItem mntmEllipse = new JMenuItem("Ellipse");
-		mntmEllipse.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				currentFigure = "Ellipse";
-			}
-		});
-		mnFigures.add(mntmEllipse);
 		
 		JPanel panel = new JPanel();
 		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
