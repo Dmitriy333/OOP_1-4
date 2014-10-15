@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseAdapter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
@@ -41,15 +42,17 @@ import javax.swing.border.LineBorder;
 
 import java.awt.Color;
 
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 
-import by.bsuir.filefilter.Filter;
+import org.reflections.Reflections;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+
+
+// выбрать из  него список типов, которые зарегестрированы в программе ClassLoader
 public class Frame {
 
 	private JFrame frame;
@@ -105,17 +108,10 @@ public class Frame {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		JMenuBar menuBar = new JMenuBar();
-		menuBar.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				
-			}
-		});
 		frame.setJMenuBar(menuBar);
 
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
-
 		JMenuItem mntmSave = new JMenuItem("Save");
 		mntmSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -204,28 +200,24 @@ public class Frame {
 				currentFigure = (String)comboBox.getSelectedItem();
 			}
 		});
-		currentFigure = initComboBox(comboBox, "new Jar files");
+		currentFigure = initComboBox(comboBox);
 		GroupLayout groupLayout = new GroupLayout(frame.getContentPane());
 		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 556, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
-					.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, 117, GroupLayout.PREFERRED_SIZE)
-					.addGap(30))
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 592, GroupLayout.PREFERRED_SIZE)
+					.addGap(18)
+					.addComponent(comboBox, 0, 138, Short.MAX_VALUE))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(panel, GroupLayout.PREFERRED_SIZE, 356, GroupLayout.PREFERRED_SIZE))
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGap(26)
-							.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-					.addContainerGap(76, Short.MAX_VALUE))
+						.addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(panel, GroupLayout.PREFERRED_SIZE, 396, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap(36, Short.MAX_VALUE))
 		);
 				panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		
@@ -238,9 +230,6 @@ public class Frame {
 						if(points == null){
 							points = new ArrayList<Point>();
 						}
-						if(!currentFigure.equals("Polyline")){
-							points.add(firstPoint);
-						}
 						pressed = true;
 					}
 					@SuppressWarnings("unchecked")
@@ -251,42 +240,33 @@ public class Frame {
 						Object object;
 						secondPoint = e.getPoint();
 						if (pressed) {
-							
 							Shape figure = null;
-							String firstWord = currentFigure.replaceAll("\\..*","");
-							currentFigure = firstWord;
 								try{
 									clazz = (Class<Shape>) Class.forName(currentFigure);
 									ctor = clazz.getConstructor(List.class);
-									if(currentFigure.equals("Polyline")){
+									object = ctor.newInstance(points);
+									figure = (Shape)object;
+									if(figure.complexFigure){
 										if(SwingUtilities.isRightMouseButton(e)){
 											pressed = false;
-											object = ctor.newInstance(points);
-											figure = (Shape)object;
 											figure.addPoints(points);
 											//add last variant of polyline in collection of shapes
 											shapes.add(figure);
 											points = null;
 										}else{
-											if(points == null){
-												points = new ArrayList<Point>();
-											}
 											points.add(secondPoint);
-											object = ctor.newInstance(points);
-											figure = (Shape)object;
 											figure.addPoints(points);
 											//draw polyline in intermediate values 
 											figure.draw(drawPanel.getGraphics());
 											pressed = true;
 										}
 									}else{
+										points.add(firstPoint);
 										points.add(secondPoint);
-										object = ctor.newInstance(points);
-										figure = (Shape)object;
 										figure.addPoints(points);
 										shapes.add(figure);
 										figure.draw(drawPanel.getGraphics());
-										//repaintPanel(drawPanel);
+										repaintPanel(drawPanel);
 										points = null;
 										pressed = false;
 									}
@@ -310,17 +290,13 @@ public class Frame {
 		}
 	}
 	
-	private String initComboBox(JComboBox<Object> comboBox, String pathName){
-		File []fList;        
-		File F = new File(pathName);
-		Filter filter = new Filter();        
-		fList = F.listFiles();
+	private String initComboBox(JComboBox<Object> comboBox){
 		List<String> figures = new ArrayList<>();
-		for(int i=0; i<fList.length; i++)           
-		{
-		     if(filter.accept(fList[i])){
-		    	 figures.add( fList[i].getName());
-		     }
+		Reflections reflections = new Reflections("by.bsuir.figures");
+		Set<Class<? extends Shape>> subTypes = reflections.getSubTypesOf(Shape.class);
+		for (Class<? extends Shape> class1 : subTypes) {
+			figures.add(class1.getName());
+			System.out.println(class1.getName());
 		}
 		comboBox.setModel(new DefaultComboBoxModel<Object>(figures.toArray()));
 		return figures.get(0);

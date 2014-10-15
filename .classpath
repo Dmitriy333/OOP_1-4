@@ -2,10 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/new Jar files/Ellipse.jar"/>
-	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/new Jar files/Line.jar"/>
-	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/new Jar files/Polyline.jar"/>
-	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/new Jar files/Rectangle.jar"/>
-	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/new Jar files/Shape.jar"/>
+	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/openpojo-0.6.0.jar"/>
+	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/reflections-0.9.9-RC1-uberjar.jar"/>
+	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/guava-18.0.jar"/>
+	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/javassist-3.12.1.GA.jar"/>
+	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/figures/figures.jar"/>
+	<classpathentry kind="lib" path="F:/Java Projects(философия java)/OOP_1-4/Shape/Shape.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
